@@ -5,11 +5,12 @@ license = "MIT OR Apache-2.0"
 readme = "./README.md"
 version = "0.1.0"
 edition = "2021"
-keywards = ["no_std", "semaphore"]
+keywords = ["no_std", "semaphore"]
 repository = "https://github.com/Raspberry1111/semaphorus"
 authors = ["Raspberry1111 <raspberry1111@duck.com>"]
 
 [features]
 nightly = [] # Uses negative_impls instead of PhantomData<*mut ()>
 std = [] # Uses std::thread::sleep and std::error::Error
-default = ["std"]
+wrapper = [] # Adds a wrapper around raw::Semaphore that owns the data
+default = ["std", "wrapper"]
