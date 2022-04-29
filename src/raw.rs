@@ -70,11 +70,43 @@ impl Semaphore {
     /// # Errors
     /// Will error if the count is at max already
 
-    pub fn try_lock(&self) -> Result<SemaphoreGuard, crate::SemaphoreError> {
+    pub fn try_get(&self) -> Result<SemaphoreGuard, crate::SemaphoreError> {
         if self.at_max(Ordering::SeqCst) {
             Err(crate::SemaphoreError::AtMaxCount)
         } else {
             Ok(SemaphoreGuard::new(self))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_maximum_count_works() {
+        let semaphore = Semaphore::new(4);
+
+        let (g1, g2, g3, g4) = (
+            semaphore.try_get(),
+            semaphore.try_get(),
+            semaphore.try_get(),
+            semaphore.try_get(),
+        );
+
+        assert_eq!(
+            (g1.is_ok(), g2.is_ok(), g3.is_ok(), g4.is_ok()),
+            (true, true, true, true)
+        );
+
+        let g5 = semaphore.try_get();
+
+        assert!(g5.is_err());
+
+        drop(g1);
+
+        let g6 = semaphore.try_get();
+
+        assert!(g6.is_ok());
     }
 }

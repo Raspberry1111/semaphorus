@@ -51,7 +51,7 @@ impl<T: ?Sized> Semaphore<T> {
     /// This function will return [`SemaphoreError::AtMax`] if the current count is >= the maximum count
     #[inline]
     pub fn try_get(&self) -> Result<SemaphoreGuard<T>, SemaphoreError> {
-        Ok(SemaphoreGuard::new(self.raw.try_lock()?, &self.data))
+        Ok(SemaphoreGuard::new(self.raw.try_get()?, &self.data))
     }
 
     /// Get a mutable reference to the data in the semaphore
@@ -111,35 +111,3 @@ impl<'guard, T: ?Sized> Deref for SemaphoreGuard<'guard, T> {
     }
 }
 unsafe impl<'guard, T: ?Sized + Sync> Sync for SemaphoreGuard<'guard, T> {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_maximum_count_works() {
-        let semaphore = Semaphore::new((), 4);
-
-        let (g1, g2, g3, g4) = (
-            semaphore.try_get(),
-            semaphore.try_get(),
-            semaphore.try_get(),
-            semaphore.try_get(),
-        );
-
-        assert_eq!(
-            (g1.is_ok(), g2.is_ok(), g3.is_ok(), g4.is_ok()),
-            (true, true, true, true)
-        );
-
-        let g5 = semaphore.try_get();
-
-        assert!(g5.is_err());
-
-        drop(g1);
-
-        let g6 = semaphore.try_get();
-
-        assert!(g6.is_ok());
-    }
-}
